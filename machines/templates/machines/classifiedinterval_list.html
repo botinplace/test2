@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load bootstrap %}
+{% load static %}
+
+{% block sidebar %}
+    {% if user.is_superuser %}
+        <li class="sidebar-brand">
+            <a href="/admin/"><span class="glyphicon glyphicon-cog"></span> ������ ����������</a>
+        </li>
+    {% endif %}
+{% endblock sidebar %}
+
+{% block content %}
+    <div class="page-header">
+        <h1>Интервалы простоя</h1>
+    </div>
+    <div style="padding-top: 10px; padding-bottom: 10px">
+        <form class="form-inline text-left" method="get">
+            <ul class="nav navbar-nav navbar-left" style="margin-left: 20px">
+                <li>{{ filter.form | bootstrap_inline }}</li>
+
+                <li><button class="btn btn-primary" style="margin-left: 20px" type="submit">Применить</button></li>
+            </ul>
+
+        </form>
+        <ul class="nav navbar-nav navbar-right"><li>
+            <!--Paginator-->
+            {% if 'equipment' in requst.get_full_path or 'start__gte' in request.get_full_path or 'empty_only' in request.get_full_path %}
+                {% with objectset=filtered_objects prefix=request.get_full_path|add:'&' %}
+                    {% include "machines/paginator.html" %}
+                {% endwith %}
+            {% else %}
+                {% with objectset=filtered_objects prefix='?' %}
+                    {% include "machines/paginator.html" %}
+                {% endwith %}
+            {% endif %}
+        </li>
+        </ul>
+    </div>
+
+
+
+    <table class="table">
+<thead>
+    <tr>
+        <th scope="col">Начало</th>
+        <th scope="col">Длительность</th>
+        <th scope="col">Оборудование</th>
+        <th scope="col">Причина</th>
+        <th scope="col">Автор</th>
+    </tr>
+</thead>
+    {% for obj in filtered_objects %}
+        <tr class="text-left">
+            <td aria-label="Начало"><a href="{% url 'works-detail' obj.equipment.id %}?date={{ obj.start|date:'Y-m-d' }}">
+                {{ obj.start|date:"d.m.y H:i" }}</a></td>
+            <td aria-label="Длительность">{{ obj.length_fmt }}</td>
+            <td aria-label="Оборудование">{{ obj.equipment }}</td>
+            <td aria-label="Причина">
+                {% if obj.user_classification.id > 0 %}
+                    {{ obj.user_classification }}
+                {% endif %}
+            </td>
+            <td aria-label="Автор">
+                {% if obj.user %}
+                    {{ obj.user }}
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+    </table>
+
+<script type="text/javascript" src="{% static 'js/classifiedinterval_list.js' %}"></script>
+{% endblock content %}
